@@ -226,6 +226,45 @@ npm run build        # Build produção
 
 ---
 
+## 🚢 Deploy em Produção
+
+O projeto usa um **Dockerfile unificado na raiz** que junta frontend e backend em um único container (porta 3001). O React é buildado e servido pelo Express junto com a API.
+
+**Repositório:** `https://github.com/leandroseja/navex-dashboard-sportsco.git` (branch `main`)
+
+### Deploy no Coolify
+
+1. Criar novo serviço apontando para o repositório Git
+2. O Coolify detecta o `Dockerfile` na raiz automaticamente
+3. Configurar as variáveis de ambiente:
+   ```
+   DB_HOST=endereco-do-mysql
+   DB_PORT=3306
+   DB_USER=usuario
+   DB_PASSWORD=senha-forte
+   DB_NAME=navex
+   JWT_SECRET=segredo-forte
+   JWT_EXPIRES_IN=7d
+   NODE_ENV=production
+   PORT=3001
+   ```
+4. Expor a porta **3001**
+5. Fazer deploy
+
+### Pós-deploy (primeira vez)
+
+Acessar o terminal do container e rodar:
+```bash
+node migrations/create-tables-direct.js
+node migrations/seed.js
+```
+
+### Easypanel (já em produção)
+
+O sistema também roda no Easypanel com serviços separados (`navex-backend`, `navex-frontend`, `mysql`, `phpmyadmin`). Para migrar para serviço único, apontar para o `Dockerfile` da raiz.
+
+---
+
 ## 🐛 Problemas Comuns
 
 ### MySQL não conecta
