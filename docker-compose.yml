@@ -1,0 +1,62 @@
+version: '3.8'
+
+services:
+  navex-backend:
+    build: ./backend
+    container_name: navex-backend
+    restart: always
+    environment:
+      - DB_HOST=navex-db
+      - DB_PORT=3306
+      - DB_USER=${DB_USER:-root}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME:-navex}
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_EXPIRES_IN=${JWT_EXPIRES_IN:-7d}
+      - PORT=3001
+      - NODE_ENV=production
+    ports:
+      - "3001:3001"
+    depends_on:
+      navex-db:
+        condition: service_healthy
+    networks:
+      - navex-network
+
+  navex-frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:3001/api}
+    container_name: navex-frontend
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - navex-backend
+    networks:
+      - navex-network
+
+  navex-db:
+    image: mysql:8.0
+    container_name: navex-db
+    restart: always
+    environment:
+      - MYSQL_ROOT_PASSWORD=${DB_PASSWORD}
+      - MYSQL_DATABASE=${DB_NAME:-navex}
+    volumes:
+      - navex-db-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - navex-network
+
+networks:
+  navex-network:
+    driver: bridge
+
+volumes:
+  navex-db-data:

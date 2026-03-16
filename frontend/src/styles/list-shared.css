@@ -1,0 +1,312 @@
+/* ============================================================
+   Shared List Styles — usado por Lojas, Produtos, Representantes
+   ============================================================ */
+
+/* ---- Header da página de listagem ---- */
+.list-page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.list-filters {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    flex: 1;
+}
+
+.list-header-right {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-shrink: 0;
+}
+
+/* ---- Campo de busca ---- */
+.search-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.search-icon {
+    position: absolute;
+    left: 10px;
+    color: #a0aec0;
+    pointer-events: none;
+}
+
+.search-input {
+    padding: 0.5rem 0.75rem 0.5rem 2rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    width: 240px;
+    background: #fff;
+    outline: none;
+    transition: border-color 0.15s;
+}
+
+.search-input:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.12);
+}
+
+/* ---- Select de filtro ---- */
+.filter-select {
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    background: #fff;
+    cursor: pointer;
+    outline: none;
+    transition: border-color 0.15s;
+}
+
+.filter-select:focus {
+    border-color: #667eea;
+}
+
+/* ---- Toolbar (contador + paginação) ---- */
+.list-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #f0f4f8;
+}
+
+.result-count {
+    font-size: 0.85rem;
+    color: #718096;
+    font-weight: 500;
+}
+
+.pagination-controls {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.por-pagina-label {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.85rem;
+    color: #4a5568;
+    white-space: nowrap;
+}
+
+.por-pagina-select {
+    padding: 0.3rem 0.5rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    background: #fff;
+    cursor: pointer;
+}
+
+/* ---- Botões de paginação ---- */
+.pag-buttons {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.pag-btn {
+    min-width: 34px;
+    height: 34px;
+    padding: 0 0.4rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    background: #fff;
+    color: #2d3748;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-weight: 500;
+}
+
+.pag-btn:hover:not(:disabled) {
+    background: #667eea;
+    color: #fff;
+    border-color: #667eea;
+}
+
+.pag-btn.active {
+    background: #667eea;
+    color: #fff;
+    border-color: #667eea;
+    font-weight: 700;
+}
+
+.pag-btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+}
+
+/* ---- Tabela padronizada ---- */
+.list-table-wrapper {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    overflow: hidden;
+    overflow-x: auto;
+    margin-bottom: 1rem;
+}
+
+.list-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}
+
+.list-table thead th {
+    padding: 0.85rem 1rem;
+    text-align: left;
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #718096;
+    background: #f7fafc;
+    border-bottom: 1px solid #e2e8f0;
+    white-space: nowrap;
+}
+
+.list-table tbody tr {
+    border-bottom: 1px solid #f0f4f8;
+    transition: background 0.12s;
+}
+
+.list-table tbody tr:last-child {
+    border-bottom: none;
+}
+
+.list-table tbody tr:hover {
+    background: #f7fafc;
+}
+
+.list-table tbody tr.inativo {
+    opacity: 0.55;
+}
+
+.list-table td {
+    padding: 0.85rem 1rem;
+    vertical-align: middle;
+}
+
+/* ---- Badges compartilhados ---- */
+.badge-empresa {
+    display: inline-block;
+    padding: 0.2rem 0.55rem;
+    border-radius: 20px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: #fff;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 0.2rem 0.6rem;
+    border-radius: 20px;
+    font-size: 0.78rem;
+    font-weight: 600;
+}
+
+.status-badge.ativo {
+    background: #c6f6d5;
+    color: #276749;
+}
+
+.status-badge.inativo {
+    background: #fed7d7;
+    color: #9b2c2c;
+}
+
+/* ---- Linha de ações ---- */
+.row-actions {
+    display: flex;
+    gap: 0.4rem;
+    align-items: center;
+}
+
+/* ---- Estado vazio ---- */
+.empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: #a0aec0;
+}
+
+.empty-state p {
+    margin-top: 0.75rem;
+    font-size: 0.95rem;
+}
+
+/* ---- Dropdown de filtro ---- */
+.filter-dropdown {
+    position: relative;
+}
+
+.dropdown-options {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    z-index: 100;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+    padding: 0.5rem;
+    min-width: 180px;
+}
+
+.dropdown-option {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 0.5rem;
+    font-size: 0.875rem;
+    cursor: pointer;
+    border-radius: 6px;
+    white-space: nowrap;
+}
+
+.dropdown-option:hover {
+    background: #f7fafc;
+}
+
+/* ---- Loading ---- */
+.loading-state {
+    text-align: center;
+    padding: 3rem;
+    color: #a0aec0;
+}
+
+/* ---- Toolbar rodapé ---- */
+.list-toolbar-bottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 1rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid #f0f4f8;
+}
