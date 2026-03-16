@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 require('dotenv').config();
 
 const app = express();
@@ -18,18 +19,8 @@ if (process.env.NODE_ENV === 'development') {
     });
 }
 
-// Rota raiz
-app.get('/', (req, res) => {
-    res.json({
-        message: 'Dashboard de Atendimento Multiempresa - API',
-        version: '1.0.0',
-        endpoints: {
-            health: '/api/health',
-            auth: '/api/auth/login',
-            docs: 'Veja README.md para documentação completa'
-        }
-    });
-});
+// Servir frontend estático (build do React)
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Rotas
 app.get('/api/health', (req, res) => {
@@ -74,9 +65,9 @@ app.use('/api/lojas', lojasRoutes);
 app.use('/api/representantes', representantesRoutes);
 app.use('/api/import', importRoutes);
 
-// Tratamento de erro 404
-app.use((req, res) => {
-    res.status(404).json({ error: 'Rota não encontrada' });
+// SPA fallback: rotas que não são /api devolvem o index.html
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // Tratamento de erros global
