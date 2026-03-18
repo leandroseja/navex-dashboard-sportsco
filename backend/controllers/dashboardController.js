@@ -24,67 +24,73 @@ const getKPIs = async (req, res) => {
             empresaFiltro = empresasPermitidas[0];
         }
 
-        // Construir query base
-        let whereClause = 'WHERE 1=1';
-        const params = [];
+        // WHERE clause para clientes_historicos (só tem empresa, telefone, data_hora)
+        let whereHistoricos = 'WHERE 1=1';
+        const paramsHistoricos = [];
+
+        // WHERE clause para clientes (tem empresa, cidade, tipo_cliente, etc)
+        let whereClientes = 'WHERE 1=1';
+        const paramsClientes = [];
 
         if (empresaFiltro) {
-            whereClause += ' AND empresa = ?';
-            params.push(empresaFiltro);
+            whereHistoricos += ' AND empresa = ?';
+            paramsHistoricos.push(empresaFiltro);
+            whereClientes += ' AND empresa = ?';
+            paramsClientes.push(empresaFiltro);
         } else if (empresasPermitidas.length > 0) {
-            whereClause += ` AND empresa IN (${empresasPermitidas.map(() => '?').join(',')})`;
-            params.push(...empresasPermitidas);
+            const placeholders = empresasPermitidas.map(() => '?').join(',');
+            whereHistoricos += ` AND empresa IN (${placeholders})`;
+            paramsHistoricos.push(...empresasPermitidas);
+            whereClientes += ` AND empresa IN (${placeholders})`;
+            paramsClientes.push(...empresasPermitidas);
         }
 
+        // Filtros que só existem na tabela clientes
         if (cidade) {
-            whereClause += ' AND cidade = ?';
-            params.push(cidade);
+            whereClientes += ' AND cidade = ?';
+            paramsClientes.push(cidade);
         }
 
         if (tipoCliente) {
-            whereClause += ' AND tipo_cliente = ?';
-            params.push(tipoCliente);
+            whereClientes += ' AND tipo_cliente = ?';
+            paramsClientes.push(tipoCliente);
         }
 
         // KPI 1: Atendimentos hoje
-        const hoje = new Date().toISOString().split('T')[0];
         const [atendimentosHoje] = await pool.query(
             `SELECT COUNT(DISTINCT telefone) as total
        FROM clientes_historicos
-       ${whereClause} AND DATE(data_hora) = ?`,
-            [...params, hoje]
+       ${whereHistoricos} AND DATE(data_hora) = CURDATE()`,
+            paramsHistoricos
         );
 
         // KPI 2: Atendimentos esta semana
         const [atendimentosSemana] = await pool.query(
             `SELECT COUNT(DISTINCT telefone) as total
        FROM clientes_historicos
-       ${whereClause} AND YEARWEEK(data_hora, 1) = YEARWEEK(CURDATE(), 1)`,
-            params
+       ${whereHistoricos} AND YEARWEEK(data_hora, 1) = YEARWEEK(CURDATE(), 1)`,
+            paramsHistoricos
         );
 
         // KPI 3: Atendimentos este mês
         const [atendimentosMes] = await pool.query(
             `SELECT COUNT(DISTINCT telefone) as total
        FROM clientes_historicos
-       ${whereClause} AND YEAR(data_hora) = YEAR(CURDATE()) AND MONTH(data_hora) = MONTH(CURDATE())`,
-            params
+       ${whereHistoricos} AND YEAR(data_hora) = YEAR(CURDATE()) AND MONTH(data_hora) = MONTH(CURDATE())`,
+            paramsHistoricos
         );
 
         // KPI 4: Clientes novos no período
         let clientesNovosQuery = `
       SELECT COUNT(*) as total
       FROM clientes
-      ${whereClause}
+      ${whereClientes}
     `;
-        const clientesNovosParams = [...params];
+        const clientesNovosParams = [...paramsClientes];
 
         if (dataInicio && dataFim) {
             clientesNovosQuery += ' AND DATE(primeira_interacao) BETWEEN ? AND ?';
             clientesNovosParams.push(dataInicio, dataFim);
-        } else {
-            // Padrão: últimos 30 dias
-            clientesNovosQuery += ' AND DATE(primeira_interacao) >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)';
         }
 
         const [clientesNovos] = await pool.query(clientesNovosQuery, clientesNovosParams);
@@ -93,16 +99,13 @@ const getKPIs = async (req, res) => {
         let totalClientesQuery = `
       SELECT COUNT(DISTINCT telefone) as total
       FROM clientes_historicos
-      ${whereClause}
+      ${whereHistoricos}
     `;
-        const totalClientesParams = [...params];
+        const totalClientesParams = [...paramsHistoricos];
 
         if (dataInicio && dataFim) {
             totalClientesQuery += ' AND DATE(data_hora) BETWEEN ? AND ?';
             totalClientesParams.push(dataInicio, dataFim);
-        } else {
-            // Padrão: últimos 30 dias
-            totalClientesQuery += ' AND DATE(data_hora) >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)';
         }
 
         const [totalClientes] = await pool.query(totalClientesQuery, totalClientesParams);
@@ -111,9 +114,9 @@ const getKPIs = async (req, res) => {
         const [estatisticasCanal] = await pool.query(
             `SELECT canal, COUNT(*) as total
              FROM clientes
-             ${whereClause}
+             ${whereClientes}
              GROUP BY canal`,
-            params
+            paramsClientes
         );
 
         const canais = {

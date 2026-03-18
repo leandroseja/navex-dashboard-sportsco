@@ -23,16 +23,17 @@ function Dashboard() {
     }, [selectedEmpresa]);
 
     const loadDashboardData = async () => {
+        setLoading(true);
         try {
             const empresaParam = selectedEmpresa ? `?empresa=${selectedEmpresa}` : '';
-            const [kpisRes, graficoRes, clientesRes] = await Promise.all([
+            const [kpisRes, graficoRes, clientesRes] = await Promise.allSettled([
                 api.get(`/dashboard/kpis${empresaParam}`),
                 api.get(`/dashboard/grafico${empresaParam}${empresaParam ? '&' : '?'}dias=7`),
                 api.get(`/dashboard/clientes${empresaParam}${empresaParam ? '&' : '?'}limit=5`)
             ]);
-            setKpis(kpisRes.data);
-            setGrafico(graficoRes.data);
-            setClientes(clientesRes.data.clientes);
+            if (kpisRes.status === 'fulfilled') setKpis(kpisRes.value.data);
+            if (graficoRes.status === 'fulfilled') setGrafico(graficoRes.value.data);
+            if (clientesRes.status === 'fulfilled') setClientes(clientesRes.value.data.clientes);
         } catch (error) {
             console.error('Erro ao carregar dashboard:', error);
         } finally {
@@ -59,7 +60,7 @@ function Dashboard() {
                     <div className="kpi-icon blue"><Activity size={24} /></div>
                     <div className="kpi-content">
                         <p className="kpi-label">Hoje</p>
-                        <h3 className="kpi-value">{kpis?.atendimentosHoje || 0}</h3>
+                        <h3 className="kpi-value">{kpis?.atendimentosHoje ?? 0}</h3>
                         <span className="kpi-trend up"><TrendingUp size={16} /> Atendimentos</span>
                     </div>
                 </div>
@@ -67,7 +68,7 @@ function Dashboard() {
                     <div className="kpi-icon green"><TrendingUp size={24} /></div>
                     <div className="kpi-content">
                         <p className="kpi-label">Esta Semana</p>
-                        <h3 className="kpi-value">{kpis?.atendimentosSemana || 0}</h3>
+                        <h3 className="kpi-value">{kpis?.atendimentosSemana ?? 0}</h3>
                         <span className="kpi-trend up"><TrendingUp size={16} /> Atendimentos</span>
                     </div>
                 </div>
@@ -75,7 +76,7 @@ function Dashboard() {
                     <div className="kpi-icon purple"><Users size={24} /></div>
                     <div className="kpi-content">
                         <p className="kpi-label">Este Mês</p>
-                        <h3 className="kpi-value">{kpis?.atendimentosMes || 0}</h3>
+                        <h3 className="kpi-value">{kpis?.atendimentosMes ?? 0}</h3>
                         <span className="kpi-trend">Total de clientes</span>
                     </div>
                 </div>
@@ -83,8 +84,8 @@ function Dashboard() {
                     <div className="kpi-icon orange"><UserPlus size={24} /></div>
                     <div className="kpi-content">
                         <p className="kpi-label">Clientes Novos</p>
-                        <h3 className="kpi-value">{kpis?.clientesNovos || 0}</h3>
-                        <span className="kpi-trend up"><TrendingUp size={16} /> Últimos 30 dias</span>
+                        <h3 className="kpi-value">{kpis?.clientesNovos ?? 0}</h3>
+                        <span className="kpi-trend up"><TrendingUp size={16} /> Total cadastrados</span>
                     </div>
                 </div>
             </div>
@@ -95,7 +96,7 @@ function Dashboard() {
                     <div className="kpi-icon" style={{ background: '#25D366' }}><MessageSquare size={24} /></div>
                     <div className="kpi-content">
                         <p className="kpi-label">WhatsApp</p>
-                        <h3 className="kpi-value">{kpis?.canais?.whatsapp || 0}</h3>
+                        <h3 className="kpi-value">{kpis?.canais?.whatsapp ?? 0}</h3>
                         <span className="kpi-trend">Clientes</span>
                     </div>
                 </div>
@@ -103,7 +104,7 @@ function Dashboard() {
                     <div className="kpi-icon" style={{ background: '#E4405F' }}><MessageSquare size={24} /></div>
                     <div className="kpi-content">
                         <p className="kpi-label">Instagram</p>
-                        <h3 className="kpi-value">{kpis?.canais?.instagram || 0}</h3>
+                        <h3 className="kpi-value">{kpis?.canais?.instagram ?? 0}</h3>
                         <span className="kpi-trend">Clientes</span>
                     </div>
                 </div>
@@ -111,7 +112,7 @@ function Dashboard() {
                     <div className="kpi-icon" style={{ background: '#667eea' }}><MessageSquare size={24} /></div>
                     <div className="kpi-content">
                         <p className="kpi-label">E-mail</p>
-                        <h3 className="kpi-value">{kpis?.canais?.email || 0}</h3>
+                        <h3 className="kpi-value">{kpis?.canais?.email ?? 0}</h3>
                         <span className="kpi-trend">Clientes</span>
                     </div>
                 </div>
