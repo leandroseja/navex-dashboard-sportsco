@@ -19,11 +19,6 @@ const getKPIs = async (req, res) => {
             }
         }
 
-        // Se não especificou empresa, usar primeira permitida
-        if (!empresaFiltro && empresasPermitidas.length > 0) {
-            empresaFiltro = empresasPermitidas[0];
-        }
-
         // WHERE clause para clientes_historicos (só tem empresa, telefone, data_hora)
         let whereHistoricos = 'WHERE 1=1';
         const paramsHistoricos = [];
