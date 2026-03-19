@@ -101,6 +101,7 @@ function Clientes() {
                             <tr>
                                 <th>Nome</th>
                                 <th>Telefone</th>
+                                <th>WhatsApp</th>
                                 <th>Canal</th>
                                 <th>Tipo</th>
                                 <th>Cidade</th>
@@ -113,6 +114,7 @@ function Clientes() {
                                 <tr key={cliente.id}>
                                     <td>{cliente.nome}</td>
                                     <td>{cliente.telefone}</td>
+                                    <td>{cliente.whatsapp || '-'}</td>
                                     <td>{getCanalBadge(cliente.canal)}</td>
                                     <td>{cliente.tipo_cliente || '-'}</td>
                                     <td>{cliente.cidade || '-'}</td>

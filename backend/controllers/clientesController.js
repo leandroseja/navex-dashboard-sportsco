@@ -137,7 +137,7 @@ const obter = async (req, res) => {
 const atualizar = async (req, res) => {
     try {
         const { id } = req.params;
-        const { nome, tipo_cliente, canal, cidade, uf, status } = req.body;
+        const { nome, tipo_cliente, canal, cidade, uf, status, whatsapp } = req.body;
 
         // Verificar se cliente existe
         const [clienteExistente] = await pool.query(
@@ -187,6 +187,11 @@ const atualizar = async (req, res) => {
         if (status !== undefined) {
             updates.push('status = ?');
             params.push(status);
+        }
+
+        if (whatsapp !== undefined) {
+            updates.push('whatsapp = ?');
+            params.push(whatsapp);
         }
 
         if (updates.length === 0) {
@@ -255,7 +260,7 @@ const exportarCSV = async (req, res) => {
 
         // Buscar todos os clientes
         const [clientes] = await pool.query(
-            `SELECT id, nome, telefone, email, tipo_cliente, canal, cidade, uf, status, 
+            `SELECT id, nome, telefone, whatsapp, email, tipo_cliente, canal, cidade, uf, status,
                     DATE_FORMAT(created_at, '%d/%m/%Y') as data_cadastro,
                     DATE_FORMAT(ultima_interacao, '%d/%m/%Y %H:%i') as ultima_interacao
              FROM clientes ${whereClause}
@@ -264,9 +269,9 @@ const exportarCSV = async (req, res) => {
         );
 
         // Gerar CSV
-        const csvHeader = 'ID,Nome,Telefone,Email,Tipo,Canal,Cidade,UF,Status,Data Cadastro,Última Interação\n';
+        const csvHeader = 'ID,Nome,Telefone,WhatsApp,Email,Tipo,Canal,Cidade,UF,Status,Data Cadastro,Última Interação\n';
         const csvRows = clientes.map(c =>
-            `${c.id},"${c.nome}","${c.telefone}","${c.email || ''}","${c.tipo_cliente || ''}","${c.canal}","${c.cidade || ''}","${c.uf || ''}","${c.status}","${c.data_cadastro}","${c.ultima_interacao}"`
+            `${c.id},"${c.nome}","${c.telefone}","${c.whatsapp || ''}","${c.email || ''}","${c.tipo_cliente || ''}","${c.canal}","${c.cidade || ''}","${c.uf || ''}","${c.status}","${c.data_cadastro}","${c.ultima_interacao}"`
         ).join('\n');
 
         const csv = csvHeader + csvRows;

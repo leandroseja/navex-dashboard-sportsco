@@ -1,0 +1,1411 @@
+{
+  "name": "ENCERRAMENTO-GERAL",
+  "nodes": [
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT * FROM clientes WHERE status='ativo' AND ultima_interacao < DATE_SUB(NOW(), INTERVAL 5 MINUTE)",
+        "options": {}
+      },
+      "id": "15a25348-ebb6-47ec-9ebb-2c51f2d3c4df",
+      "name": "Buscar Inativos 5min",
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2.4,
+      "position": [
+        16768,
+        13168
+      ],
+      "credentials": {
+        "mySql": {
+          "id": "1BYSZhilD5Ryqx6t",
+          "name": "MYSQL-NAVEX"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "74fd3d2f-7a4a-47e5-a1de-d3bd0f120f03",
+              "leftValue": "={{ $json.telefone }}.toString()",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "438fbc2e-8b8c-4053-8c48-fe3c04838d3f",
+      "name": "Tem Inativos 5min?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        16992,
+        13168
+      ],
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "=UPDATE clientes SET status='aguardando_whatsapp' WHERE  id={{$('Buscar Inativos 5min').item.json.id}} AND status='ativo'",
+        "options": {}
+      },
+      "id": "91c906e9-097b-4b0b-9818-c00374368713",
+      "name": "Marcar Aguardando WhatsApp",
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2.4,
+      "position": [
+        17216,
+        13168
+      ],
+      "credentials": {
+        "mySql": {
+          "id": "1BYSZhilD5Ryqx6t",
+          "name": "MYSQL-NAVEX"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://evolution.seja.me/message/sendText/N8N - SEJA",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "4DA796746AE4-48F4-8E05-5D053DB8DC73"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ {\"number\": $('Tem Inativos 5min?').item.json.telefone, \"text\": ($('Tem Inativos 5min?').item.json.nome || 'Olá') + \", obrigada pelo contato!\\n\\nPara ficar por dentro das novidades, lançamentos e tudo sobre o mundo das motos, envie seu número de WhatsApp (DDD + telefone) e receba conteúdos exclusivos em primeira mão! 📱\"} }}",
+        "options": {}
+      },
+      "id": "fbe27c19-d433-4d03-b6e6-1caa69157bff",
+      "name": "Enviar Pedindo WhatsApp",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        17440,
+        13168
+      ],
+      "onError": "continueRegularOutput",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT c.*, e.mensagem_encerramento FROM clientes c LEFT JOIN empresas e ON e.slug COLLATE utf8mb4_unicode_ci = c.empresa WHERE c.status='aguardando_whatsapp' AND c.ultima_interacao < DATE_SUB(NOW(), INTERVAL 3 MINUTE)",
+        "options": {}
+      },
+      "id": "f9d43e2c-aa8c-4c49-b6c3-5b37148ada4d",
+      "name": "Buscar Timeout 3min",
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2.4,
+      "position": [
+        16768,
+        13360
+      ],
+      "credentials": {
+        "mySql": {
+          "id": "1BYSZhilD5Ryqx6t",
+          "name": "MYSQL-NAVEX"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "13154324-2c43-45f9-b517-bd1a8a8d8f72",
+              "leftValue": "={{ $json.id }}.toString()",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "bc526e16-8ef7-46de-9727-555b114bb442",
+      "name": "Tem Timeout?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        16992,
+        13360
+      ],
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://evolution.seja.me/message/sendText/N8N - SEJA",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "4DA796746AE4-48F4-8E05-5D053DB8DC73"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ {\"number\": $json.telefone, \"text\": $json.mensagem_encerramento || \"Obrigada pelo contato! Se precisar de algo, estamos sempre aqui para ajudar. Até breve!\"} }}",
+        "options": {}
+      },
+      "id": "b6b1da27-6816-4979-b41d-f0d93057ec82",
+      "name": "Enviar Despedida",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        17216,
+        13360
+      ],
+      "onError": "continueRegularOutput",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "=UPDATE clientes SET status='finalizado' WHERE id={{ $('Buscar Timeout 3min').item.json.id }}",
+        "options": {}
+      },
+      "id": "d1efac3d-45b9-4f59-a1c3-d28e56a50aac",
+      "name": "Finalizar Timeout",
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2.4,
+      "position": [
+        17440,
+        13360
+      ],
+      "credentials": {
+        "mySql": {
+          "id": "1BYSZhilD5Ryqx6t",
+          "name": "MYSQL-NAVEX"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 15
+            }
+          ]
+        }
+      },
+      "id": "02a60c82-374b-487c-9f70-01483944063c",
+      "name": "A cada 15 minutos",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        16544,
+        13264
+      ],
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "content": "## BLOCO ANTIGO (DESABILITADO)\n**Blocos 1 e 2 antigos - sem suporte Instagram",
+        "height": 912,
+        "width": 3104
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        16416,
+        12016
+      ],
+      "typeVersion": 1,
+      "id": "a36c3629-361d-46b7-b54d-3e69b9561ff4",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://evolution.seja.me/message/sendText/N8N - SEJA",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "4DA796746AE4-48F4-8E05-5D053DB8DC73"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"number\": \"{{ $('Buscar Inativos MySQL').item.json.telefone }}\", \"text\": \"✅ Email {{ $('Validar Email').item.json.email }} cadastrado! Você vai receber nossas novidades em breve. Obrigada!\"}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        19040,
+        12768
+      ],
+      "id": "e7569046-8537-4abf-9664-b8fa11522ff2",
+      "name": "Confirmar Email",
+      "onError": "continueRegularOutput",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "=UPDATE clientes SET email = '{{ $json.email }}' WHERE telefone = '{{ $json.telefone }}'",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2.4,
+      "position": [
+        18816,
+        12768
+      ],
+      "id": "50d3a257-15a8-4438-8483-1f2df6b9ae44",
+      "name": "Gravar Email",
+      "credentials": {
+        "mySql": {
+          "id": "1BYSZhilD5Ryqx6t",
+          "name": "MYSQL-NAVEX"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "email-ok",
+              "leftValue": "={{ $json.emailValido }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        18592,
+        12704
+      ],
+      "id": "88082f63-d2f8-4b3f-b12c-f7840f8b9ff9",
+      "name": "Email Válido?",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const cliente = $('Buscar Inativos MySQL').first().json;\nconst resposta = $('Buscar Resposta').first().json;\nconst mensagem = (resposta.mensagem_cliente || '').trim();\n\nconsole.log('Mensagem recebida:', mensagem);\n\n// Regex para email (pega no meio do texto)\nconst emailRegex = /[^\\s@]+@[^\\s@]+\\.[^\\s@]+/;\nconst matches = mensagem.match(emailRegex);\n\nconst emailValido = matches && matches.length > 0;\nconst email = emailValido ? matches[0] : '';\n\nconsole.log('Email válido?', emailValido);\nconsole.log('Email:', email);\n\nreturn [{\n  json: {\n    ...cliente,\n    emailValido: emailValido,\n    email: email\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        18368,
+        12704
+      ],
+      "id": "91b2f2cb-acb0-4cba-9537-f4f4c625ddf1",
+      "name": "Validar Email",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "=SELECT mensagem_cliente FROM clientes_historicos WHERE telefone = '{{ $('Buscar Inativos MySQL').item.json.telefone }}' ORDER BY data_hora DESC LIMIT 1",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2.4,
+      "position": [
+        18144,
+        12704
+      ],
+      "id": "fca812d2-9635-4acc-9d48-13123dec1dc0",
+      "name": "Buscar Resposta",
+      "credentials": {
+        "mySql": {
+          "id": "1BYSZhilD5Ryqx6t",
+          "name": "MYSQL-NAVEX"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "amount": 30
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        17920,
+        12704
+      ],
+      "id": "c5f3239b-4ee9-4ec9-8c86-9d0dfc4cfccc",
+      "name": "Esperar 30s",
+      "webhookId": "esperar-resposta-email-mt",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "=UPDATE clientes SET status = 'aguardando_email' WHERE id = {{ $('Buscar Inativos MySQL').item.json.id }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2.4,
+      "position": [
+        17472,
+        12704
+      ],
+      "id": "ae9e9fd8-00e6-47c1-bb1a-337a175f67ea",
+      "name": "Marcar Aguardando Email",
+      "credentials": {
+        "mySql": {
+          "id": "1BYSZhilD5Ryqx6t",
+          "name": "MYSQL-NAVEX"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://evolution.seja.me/message/sendText/N8N - SEJA",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "4DA796746AE4-48F4-8E05-5D053DB8DC73"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"number\": \"{{ $json.telefone }}\", \"text\": \"{{ $json.nome ? $json.nome + ', obrigada' : 'Obrigada' }} pelo contato com a MT Helmets! Se precisar de mais alguma coisa, é só chamar. Até a próxima! 🏍️\"}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        19040,
+        12480
+      ],
+      "id": "1e8ff749-ff01-4afc-b6d5-a49a2e57cd8f",
+      "name": "Enviar Encerramento Simples",
+      "onError": "continueRegularOutput",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "email-existe",
+              "leftValue": "={{ $json.email }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists"
+              }
+            },
+            {
+              "id": "email-nao-vazio",
+              "leftValue": "={{ $json.email }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        17248,
+        12624
+      ],
+      "id": "8dc83c45-2458-4ac2-9c6d-80d00e2b4904",
+      "name": "Tem Email?",
+      "disabled": true
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        17248,
+        12432
+      ],
+      "id": "60f053b1-bb45-4fea-bc4b-4f1ba6706a2e",
+      "name": "Nenhum Inativo",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "=UPDATE clientes SET status = 'finalizado' WHERE id = {{ $('Buscar Inativos MySQL').item.json.id }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2.4,
+      "position": [
+        19264,
+        12624
+      ],
+      "id": "1ee7c52b-82b2-4db9-a505-b8cd8cf1fdd9",
+      "name": "Marcar Finalizado",
+      "credentials": {
+        "mySql": {
+          "id": "1BYSZhilD5Ryqx6t",
+          "name": "MYSQL-NAVEX"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://evolution.seja.me/message/sendText/N8N - SEJA",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "4DA796746AE4-48F4-8E05-5D053DB8DC73"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"number\": \"{{ $('Buscar Inativos MySQL').item.json.telefone }}\", \"text\": \"{{ $('Buscar Inativos MySQL').item.json.nome ? $('Buscar Inativos MySQL').item.json.nome + ', obrigada' : 'Obrigada' }} pelo contato com a MT Helmets!\\n\\nPara ficar por dentro das novidades, lançamentos e tudo sobre o mundo das motos, envie seu e-mail e receba conteúdos exclusivos em primeira mão! 📧\"}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        17696,
+        12704
+      ],
+      "id": "9e4c225f-120a-47a9-9df9-36ca69f5e594",
+      "name": "Enviar Encerramento",
+      "onError": "continueRegularOutput",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "cond-tem-resultado",
+              "leftValue": "={{ $json.id }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        17024,
+        12528
+      ],
+      "id": "e73ab480-b5c2-4957-be39-3c64bb4679f2",
+      "name": "Tem Inativos?",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT id, telefone, nome, email, status, ultima_interacao, TIMESTAMPDIFF(MINUTE, ultima_interacao, NOW()) as minutos_inativo FROM clientes WHERE status = 'ativo' AND ultima_interacao < DATE_SUB(NOW(), INTERVAL 5 MINUTE)",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2.4,
+      "position": [
+        16800,
+        12528
+      ],
+      "id": "b25962ee-3a28-425a-a10e-a51f79232624",
+      "name": "Buscar Inativos MySQL",
+      "credentials": {
+        "mySql": {
+          "id": "1BYSZhilD5Ryqx6t",
+          "name": "MYSQL-NAVEX"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 1
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        16576,
+        12528
+      ],
+      "id": "9abb1871-dfac-4320-b182-fb3fae53a1d3",
+      "name": "A cada 1 minuto",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "content": "## BLOCO ATIVO - MULTI-CANAL\n**Instagram + WhatsApp com correção de referências",
+        "height": 912,
+        "width": 3104
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        16416,
+        12976
+      ],
+      "typeVersion": 1,
+      "id": "2631c507-0097-4bf4-a9fa-ab13dd64c57e",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "cond-ig-1",
+                    "leftValue": "={{ $('Buscar Inativos 15min').item.json.canal }}",
+                    "rightValue": "instagram",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Instagram"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      },
+      "id": "4c5d5b7a-7496-43e2-841f-fe7a47d2a3c9",
+      "name": "Canal? (Inativos)",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        17472,
+        14032
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const dados = $('Buscar Inativos 15min').item.json;\nconst psid = dados.telefone;\nconst nome = dados.nome || 'Ola';\nconst token = dados.ig_token;\n\nif (!token) {\n  console.error('Token Instagram nao encontrado para empresa: ' + dados.empresa);\n  return [{ json: { ...dados, envioInstagram: { erro: 'token_nao_encontrado' } } }];\n}\n\nconst texto = nome + ', obrigada pelo contato!\\n\\nPara ficar por dentro das novidades, lancamentos e tudo sobre o mundo das motos, envie seu numero de WhatsApp (DDD + telefone) e receba conteudos exclusivos em primeira mao!';\n\nconst response = await this.helpers.httpRequest({\n  method: 'POST',\n  url: 'https://graph.instagram.com/v21.0/me/messages',\n  headers: { 'Content-Type': 'application/json' },\n  body: JSON.stringify({\n    recipient: { id: psid },\n    message: { text: texto },\n    access_token: token\n  })\n});\n\nreturn [{ json: { ...dados, envioInstagram: response } }];"
+      },
+      "id": "1a6feb6d-a081-49ad-8bb0-a2bfe82deede",
+      "name": "Enviar Pedindo WhatsApp (Instagram)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        17696,
+        13936
+      ],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "cond-ig-2",
+                    "leftValue": "={{ $('Buscar Timeout 5min').item.json.canal }}",
+                    "rightValue": "instagram",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Instagram"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      },
+      "id": "3adc33b3-7d85-4374-b6d7-30ea69c3d002",
+      "name": "Canal? (Timeout)",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        17248,
+        14416
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const dados = $('Buscar Timeout 5min').item.json;\nconst psid = dados.telefone;\nconst token = dados.ig_token;\n\nif (!token) {\n  console.error('Token Instagram nao encontrado para empresa: ' + dados.empresa);\n  return [{ json: { ...dados, envioInstagram: { erro: 'token_nao_encontrado' } } }];\n}\n\nconst texto = dados.mensagem_encerramento || 'Obrigada pelo contato! Se precisar de algo, estamos sempre aqui para ajudar. Ate breve!';\n\nconst response = await this.helpers.httpRequest({\n  method: 'POST',\n  url: 'https://graph.instagram.com/v21.0/me/messages',\n  headers: { 'Content-Type': 'application/json' },\n  body: JSON.stringify({\n    recipient: { id: psid },\n    message: { text: texto },\n    access_token: token\n  })\n});\n\nreturn [{ json: { ...dados, envioInstagram: response } }];"
+      },
+      "id": "b28cee9d-2c4e-4158-b1a4-071ee88365e7",
+      "name": "Enviar Despedida (Instagram)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        17472,
+        14320
+      ],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT c.*, e.mensagem_encerramento, i.access_token AS ig_token, i.page_id AS ig_page_id FROM clientes c LEFT JOIN empresas e ON e.slug COLLATE utf8mb4_unicode_ci = c.empresa LEFT JOIN integracoes i ON i.empresa_id = e.id AND i.plataforma = 'instagram' AND i.ativo = 1 WHERE c.status='ativo' AND c.ultima_interacao < DATE_SUB(NOW(), INTERVAL 15 MINUTE)",
+        "options": {}
+      },
+      "id": "4168898f-bdbd-4b1c-b88d-568d3413c481",
+      "name": "Buscar Inativos 15min",
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2.4,
+      "position": [
+        16800,
+        14032
+      ],
+      "credentials": {
+        "mySql": {
+          "id": "1BYSZhilD5Ryqx6t",
+          "name": "MYSQL-NAVEX"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "74fd3d2f-7a4a-47e5-a1de-d3bd0f120f03",
+              "leftValue": "={{ $json.telefone }}.toString()",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "4900948c-64d1-47d6-a979-e11c7742eed8",
+      "name": "Tem Inativos 15min?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        17024,
+        14032
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "=UPDATE clientes SET status='aguardando_whatsapp', status_alterado_em=NOW() WHERE id={{$('Buscar Inativos 15min').item.json.id}} AND status='ativo'",
+        "options": {}
+      },
+      "id": "874984e1-3f5a-44ff-9573-8b2ace1d95e1",
+      "name": "Marcar Aguardando WhatsApp1",
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2.4,
+      "position": [
+        17248,
+        14032
+      ],
+      "credentials": {
+        "mySql": {
+          "id": "1BYSZhilD5Ryqx6t",
+          "name": "MYSQL-NAVEX"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://evolution.seja.me/message/sendText/N8N - SEJA",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "4DA796746AE4-48F4-8E05-5D053DB8DC73"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ {\"number\": $('Buscar Inativos 15min').item.json.telefone, \"text\": ($('Buscar Inativos 15min').item.json.nome || 'Olá') + \", obrigada pelo contato!\\n\\nPara ficar por dentro das novidades, lançamentos e tudo sobre o mundo das motos, envie seu número de WhatsApp (DDD + telefone) e receba conteúdos exclusivos em primeira mão! 📱\"} }}",
+        "options": {}
+      },
+      "id": "0c55a841-3245-4d62-b575-b15e9d5b82a7",
+      "name": "Enviar Pedindo WhatsApp1",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        17696,
+        14128
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT c.*, e.mensagem_encerramento, i.access_token AS ig_token, i.page_id AS ig_page_id FROM clientes c LEFT JOIN empresas e ON e.slug COLLATE utf8mb4_unicode_ci = c.empresa LEFT JOIN integracoes i ON i.empresa_id = e.id AND i.plataforma = 'instagram' AND i.ativo = 1 WHERE c.status='aguardando_whatsapp' AND c.status_alterado_em < DATE_SUB(NOW(), INTERVAL 5 MINUTE)",
+        "options": {}
+      },
+      "id": "ac526ce0-4327-4a2e-9db1-40474e2a4683",
+      "name": "Buscar Timeout 5min",
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2.4,
+      "position": [
+        16800,
+        14416
+      ],
+      "credentials": {
+        "mySql": {
+          "id": "1BYSZhilD5Ryqx6t",
+          "name": "MYSQL-NAVEX"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "13154324-2c43-45f9-b517-bd1a8a8d8f72",
+              "leftValue": "={{ $json.id }}.toString()",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "23e62bbd-eadd-4c85-94ce-404b8dfc5892",
+      "name": "Tem Timeout?1",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        17024,
+        14416
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://evolution.seja.me/message/sendText/N8N - SEJA",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "4DA796746AE4-48F4-8E05-5D053DB8DC73"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ {\"number\": $('Buscar Timeout 5min').item.json.telefone, \"text\": $('Buscar Timeout 5min').item.json.mensagem_encerramento || \"Obrigada pelo contato! Se precisar de algo, estamos sempre aqui para ajudar. Até breve!\"} }}",
+        "options": {}
+      },
+      "id": "12331b14-034d-474f-9263-2e2b482780d4",
+      "name": "Enviar Despedida1",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        17472,
+        14512
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "=UPDATE clientes SET status='finalizado' WHERE id={{ $('Buscar Timeout 5min').first().json.id }}",
+        "options": {}
+      },
+      "id": "fccee1d4-3ba3-4a78-9613-5a61929d66de",
+      "name": "Finalizar Timeout1",
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2.4,
+      "position": [
+        17696,
+        14416
+      ],
+      "credentials": {
+        "mySql": {
+          "id": "1BYSZhilD5Ryqx6t",
+          "name": "MYSQL-NAVEX"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 1
+            }
+          ]
+        }
+      },
+      "id": "062fcbc3-1c9d-4365-90f5-7cc05ea89dac",
+      "name": "A cada 1 minuto1",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        16576,
+        14224
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Buscar Inativos 5min": {
+      "main": [
+        [
+          {
+            "node": "Tem Inativos 5min?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tem Inativos 5min?": {
+      "main": [
+        [
+          {
+            "node": "Marcar Aguardando WhatsApp",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Marcar Aguardando WhatsApp": {
+      "main": [
+        [
+          {
+            "node": "Enviar Pedindo WhatsApp",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar Timeout 3min": {
+      "main": [
+        [
+          {
+            "node": "Tem Timeout?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tem Timeout?": {
+      "main": [
+        [
+          {
+            "node": "Enviar Despedida",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enviar Despedida": {
+      "main": [
+        [
+          {
+            "node": "Finalizar Timeout",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "A cada 15 minutos": {
+      "main": [
+        [
+          {
+            "node": "Buscar Inativos 5min",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Buscar Timeout 3min",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gravar Email": {
+      "main": [
+        [
+          {
+            "node": "Confirmar Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email Válido?": {
+      "main": [
+        [
+          {
+            "node": "Gravar Email",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Marcar Finalizado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validar Email": {
+      "main": [
+        [
+          {
+            "node": "Email Válido?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar Resposta": {
+      "main": [
+        [
+          {
+            "node": "Validar Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Esperar 30s": {
+      "main": [
+        [
+          {
+            "node": "Buscar Resposta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Marcar Aguardando Email": {
+      "main": [
+        [
+          {
+            "node": "Enviar Encerramento",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tem Email?": {
+      "main": [
+        [
+          {
+            "node": "Enviar Encerramento Simples",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Marcar Aguardando Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Confirmar Email": {
+      "main": [
+        [
+          {
+            "node": "Marcar Finalizado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enviar Encerramento Simples": {
+      "main": [
+        [
+          {
+            "node": "Marcar Finalizado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enviar Encerramento": {
+      "main": [
+        [
+          {
+            "node": "Esperar 30s",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tem Inativos?": {
+      "main": [
+        [
+          {
+            "node": "Tem Email?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Nenhum Inativo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar Inativos MySQL": {
+      "main": [
+        [
+          {
+            "node": "Tem Inativos?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "A cada 1 minuto": {
+      "main": [
+        [
+          {
+            "node": "Buscar Inativos MySQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Canal? (Inativos)": {
+      "main": [
+        [
+          {
+            "node": "Enviar Pedindo WhatsApp (Instagram)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Enviar Pedindo WhatsApp1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Canal? (Timeout)": {
+      "main": [
+        [
+          {
+            "node": "Enviar Despedida (Instagram)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Enviar Despedida1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enviar Despedida (Instagram)": {
+      "main": [
+        [
+          {
+            "node": "Finalizar Timeout1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar Inativos 15min": {
+      "main": [
+        [
+          {
+            "node": "Tem Inativos 15min?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tem Inativos 15min?": {
+      "main": [
+        [
+          {
+            "node": "Marcar Aguardando WhatsApp1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Marcar Aguardando WhatsApp1": {
+      "main": [
+        [
+          {
+            "node": "Canal? (Inativos)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar Timeout 5min": {
+      "main": [
+        [
+          {
+            "node": "Tem Timeout?1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tem Timeout?1": {
+      "main": [
+        [
+          {
+            "node": "Canal? (Timeout)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enviar Despedida1": {
+      "main": [
+        [
+          {
+            "node": "Finalizar Timeout1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "A cada 1 minuto1": {
+      "main": [
+        [
+          {
+            "node": "Buscar Inativos 15min",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Buscar Timeout 5min",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "3d9dc59c-7e88-4b96-999f-6f064fd116db",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ff458925ae19b6071e7f9b34885b97b7abf668506be8f15a867486cfbab728b2"
+  },
+  "id": "aCxqRi9K9qON0eYTxGqMB",
+  "tags": [
+    {
+      "updatedAt": "2026-01-14T20:17:36.278Z",
+      "createdAt": "2026-01-14T20:17:36.278Z",
+      "id": "MfpAvUGwEdIg6W6u",
+      "name": "AXXIS"
+    },
+    {
+      "updatedAt": "2026-01-12T19:13:52.169Z",
+      "createdAt": "2026-01-12T19:13:52.169Z",
+      "id": "2ET31Vlee6GETeOC",
+      "name": "SportsCo"
+    }
+  ]
+}

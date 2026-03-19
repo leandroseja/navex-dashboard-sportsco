@@ -40,6 +40,7 @@ CREATE TABLE `clientes` (
   `ultima_interacao` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `total_interacoes` int(11) DEFAULT '1',
   `status` varchar(20) DEFAULT 'ativo',
+  `status_alterado_em` datetime DEFAULT NULL,
   `primeira_mensagem` text
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
