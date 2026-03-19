@@ -5,7 +5,7 @@ import CompanySelector from '../components/CompanySelector';
 import PageLayout from '../components/PageLayout';
 import api from '../services/api';
 import {
-    MessageSquare, TrendingUp, Activity, UserPlus, Users
+    MessageSquare, TrendingUp, Activity, UserPlus, UserCheck
 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import './Dashboard.css';
@@ -73,7 +73,7 @@ function Dashboard() {
                     </div>
                 </div>
                 <div className="kpi-card">
-                    <div className="kpi-icon purple"><Users size={24} /></div>
+                    <div className="kpi-icon purple"><Activity size={24} /></div>
                     <div className="kpi-content">
                         <p className="kpi-label">Este Mês</p>
                         <h3 className="kpi-value">{kpis?.atendimentosMes ?? 0}</h3>
@@ -83,19 +83,27 @@ function Dashboard() {
                 <div className="kpi-card">
                     <div className="kpi-icon orange"><UserPlus size={24} /></div>
                     <div className="kpi-content">
-                        <p className="kpi-label">Clientes Novos</p>
-                        <h3 className="kpi-value">{kpis?.clientesNovos ?? 0}</h3>
-                        <span className="kpi-trend up"><TrendingUp size={16} /> Total cadastrados</span>
+                        <p className="kpi-label">Novos (semana)</p>
+                        <h3 className="kpi-value">{kpis?.clientesNovosSemana ?? 0}</h3>
+                        <span className="kpi-trend up"><TrendingUp size={16} /> Primeira vez</span>
                     </div>
                 </div>
             </div>
 
-            {/* Canais */}
+            {/* Canais + Retornos */}
             <div className="kpis-grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
+                <div className="kpi-card">
+                    <div className="kpi-icon" style={{ background: '#805AD5' }}><UserCheck size={24} /></div>
+                    <div className="kpi-content">
+                        <p className="kpi-label">Retornos (semana)</p>
+                        <h3 className="kpi-value">{kpis?.clientesRetornosSemana ?? 0}</h3>
+                        <span className="kpi-trend">Clientes recorrentes</span>
+                    </div>
+                </div>
                 <div className="kpi-card">
                     <div className="kpi-icon" style={{ background: '#25D366' }}><MessageSquare size={24} /></div>
                     <div className="kpi-content">
-                        <p className="kpi-label">WhatsApp</p>
+                        <p className="kpi-label">WhatsApp (semana)</p>
                         <h3 className="kpi-value">{kpis?.canais?.whatsapp ?? 0}</h3>
                         <span className="kpi-trend">Clientes</span>
                     </div>
@@ -103,16 +111,8 @@ function Dashboard() {
                 <div className="kpi-card">
                     <div className="kpi-icon" style={{ background: '#E4405F' }}><MessageSquare size={24} /></div>
                     <div className="kpi-content">
-                        <p className="kpi-label">Instagram</p>
+                        <p className="kpi-label">Instagram (semana)</p>
                         <h3 className="kpi-value">{kpis?.canais?.instagram ?? 0}</h3>
-                        <span className="kpi-trend">Clientes</span>
-                    </div>
-                </div>
-                <div className="kpi-card">
-                    <div className="kpi-icon" style={{ background: '#667eea' }}><MessageSquare size={24} /></div>
-                    <div className="kpi-content">
-                        <p className="kpi-label">E-mail</p>
-                        <h3 className="kpi-value">{kpis?.canais?.email ?? 0}</h3>
                         <span className="kpi-trend">Clientes</span>
                     </div>
                 </div>
@@ -130,11 +130,26 @@ function Dashboard() {
                             tickFormatter={(v) => new Date(v).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}
                         />
                         <YAxis stroke="#718096" />
-                        <Tooltip contentStyle={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '8px' }} />
+                        <Tooltip
+                            contentStyle={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '8px' }}
+                            formatter={(value, name) => {
+                                const labels = { atendimentos: 'Total', novos: 'Novos', retornos: 'Retornos' };
+                                return [value, labels[name] || name];
+                            }}
+                        />
                         <Line type="monotone" dataKey="atendimentos" stroke="#667eea" strokeWidth={3}
                             dot={{ fill: '#667eea', r: 5 }} activeDot={{ r: 7 }} />
+                        <Line type="monotone" dataKey="novos" stroke="#48BB78" strokeWidth={2}
+                            dot={{ fill: '#48BB78', r: 4 }} strokeDasharray="0" />
+                        <Line type="monotone" dataKey="retornos" stroke="#ED8936" strokeWidth={2}
+                            dot={{ fill: '#ED8936', r: 4 }} strokeDasharray="5 5" />
                     </LineChart>
                 </ResponsiveContainer>
+                <div style={{ display: 'flex', justifyContent: 'center', gap: '24px', marginTop: '8px', fontSize: '13px', color: '#718096' }}>
+                    <span><span style={{ color: '#667eea' }}>---</span> Total</span>
+                    <span><span style={{ color: '#48BB78' }}>---</span> Novos</span>
+                    <span><span style={{ color: '#ED8936' }}>- - -</span> Retornos</span>
+                </div>
             </div>
 
             {/* Clientes Recentes */}

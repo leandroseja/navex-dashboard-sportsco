@@ -10,7 +10,7 @@ function Empresas() {
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const [editingEmpresa, setEditingEmpresa] = useState(null);
-    const [formData, setFormData] = useState({ nome: '', slug: '', ativo: 1 });
+    const [formData, setFormData] = useState({ nome: '', slug: '', ativo: 1, mensagem_encerramento: '' });
     const [busca, setBusca] = useState('');
 
     useEffect(() => {
@@ -40,7 +40,7 @@ function Empresas() {
                 alert('Empresa criada com sucesso!');
             }
             setShowModal(false);
-            setFormData({ nome: '', slug: '', ativo: 1 });
+            setFormData({ nome: '', slug: '', ativo: 1, mensagem_encerramento: '' });
             setEditingEmpresa(null);
             loadEmpresas();
         } catch (error) {
@@ -50,7 +50,7 @@ function Empresas() {
 
     const handleEdit = (empresa) => {
         setEditingEmpresa(empresa);
-        setFormData({ nome: empresa.nome, slug: empresa.slug, ativo: empresa.ativo });
+        setFormData({ nome: empresa.nome, slug: empresa.slug, ativo: empresa.ativo, mensagem_encerramento: empresa.mensagem_encerramento || '' });
         setShowModal(true);
     };
 
@@ -68,7 +68,7 @@ function Empresas() {
 
     const handleNew = () => {
         setEditingEmpresa(null);
-        setFormData({ nome: '', slug: '', ativo: 1 });
+        setFormData({ nome: '', slug: '', ativo: 1, mensagem_encerramento: '' });
         setShowModal(true);
     };
 
@@ -167,6 +167,16 @@ function Empresas() {
                                     <option value={1}>Ativo</option>
                                     <option value={0}>Inativo</option>
                                 </select>
+                            </div>
+                            <div className="form-group">
+                                <label>Mensagem de Encerramento</label>
+                                <textarea
+                                    value={formData.mensagem_encerramento}
+                                    onChange={(e) => setFormData({ ...formData, mensagem_encerramento: e.target.value })}
+                                    rows={3}
+                                    placeholder="Mensagem enviada ao encerrar a conversa com o cliente"
+                                    style={{ resize: 'vertical' }}
+                                />
                             </div>
                             <div className="modal-actions">
                                 <button type="button" className="btn-secondary" onClick={() => setShowModal(false)}>

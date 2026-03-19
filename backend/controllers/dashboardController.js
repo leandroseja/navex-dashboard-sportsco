@@ -75,60 +75,50 @@ const getKPIs = async (req, res) => {
             paramsHistoricos
         );
 
-        // KPI 4: Clientes novos no período
-        let clientesNovosQuery = `
-      SELECT COUNT(*) as total
-      FROM clientes
-      ${whereClientes}
-    `;
-        const clientesNovosParams = [...paramsClientes];
-
-        if (dataInicio && dataFim) {
-            clientesNovosQuery += ' AND DATE(primeira_interacao) BETWEEN ? AND ?';
-            clientesNovosParams.push(dataInicio, dataFim);
-        }
-
-        const [clientesNovos] = await pool.query(clientesNovosQuery, clientesNovosParams);
-
-        // KPI 5: Total de clientes com interação no período
-        let totalClientesQuery = `
-      SELECT COUNT(DISTINCT telefone) as total
-      FROM clientes_historicos
-      ${whereHistoricos}
-    `;
-        const totalClientesParams = [...paramsHistoricos];
-
-        if (dataInicio && dataFim) {
-            totalClientesQuery += ' AND DATE(data_hora) BETWEEN ? AND ?';
-            totalClientesParams.push(dataInicio, dataFim);
-        }
-
-        const [totalClientes] = await pool.query(totalClientesQuery, totalClientesParams);
-
-        // KPI 6: Estatísticas por canal
-        const [estatisticasCanal] = await pool.query(
-            `SELECT canal, COUNT(*) as total
+        // KPI 4: Clientes novos esta semana (primeira_interacao na semana atual)
+        const [clientesNovosSemana] = await pool.query(
+            `SELECT COUNT(*) as total
              FROM clientes
-             ${whereClientes}
-             GROUP BY canal`,
+             ${whereClientes} AND YEARWEEK(primeira_interacao, 1) = YEARWEEK(CURDATE(), 1)`,
             paramsClientes
+        );
+
+        // KPI 5: Clientes retornos esta semana (interagiram esta semana mas primeira_interacao é anterior)
+        const [clientesRetornosSemana] = await pool.query(
+            `SELECT COUNT(DISTINCT ch.telefone) as total
+             FROM clientes_historicos ch
+             INNER JOIN clientes c ON c.telefone = ch.telefone AND c.empresa = ch.empresa
+             ${whereHistoricos} AND YEARWEEK(ch.data_hora, 1) = YEARWEEK(CURDATE(), 1)
+             AND YEARWEEK(c.primeira_interacao, 1) < YEARWEEK(CURDATE(), 1)`,
+            paramsHistoricos
+        );
+
+        // KPI 6: Estatísticas por canal (esta semana)
+        const [estatisticasCanal] = await pool.query(
+            `SELECT c.canal, COUNT(DISTINCT ch.telefone) as total
+             FROM clientes_historicos ch
+             INNER JOIN clientes c ON c.telefone = ch.telefone AND c.empresa = ch.empresa
+             ${whereHistoricos} AND YEARWEEK(ch.data_hora, 1) = YEARWEEK(CURDATE(), 1)
+             GROUP BY c.canal`,
+            paramsHistoricos
         );
 
         const canais = {
             whatsapp: 0,
-            instagram: 0,
-            email: 0
+            instagram: 0
         };
         estatisticasCanal.forEach(row => {
-            canais[row.canal] = row.total;
+            if (canais.hasOwnProperty(row.canal)) {
+                canais[row.canal] = row.total;
+            }
         });
 
         res.json({
             atendimentosHoje: atendimentosHoje[0].total,
             atendimentosSemana: atendimentosSemana[0].total,
             atendimentosMes: atendimentosMes[0].total,
-            clientesNovos: clientesNovos[0].total,
-            totalClientesComInteracao: totalClientes[0].total,
+            clientesNovosSemana: clientesNovosSemana[0].total,
+            clientesRetornosSemana: clientesRetornosSemana[0].total,
             canais
         });
     } catch (error) {
@@ -162,16 +152,19 @@ const getGrafico = async (req, res) => {
             params.push(...empresasPermitidas);
         }
 
-        // Buscar atendimentos por dia
+        // Buscar atendimentos por dia com separação novos vs retornos
         const [dados] = await pool.query(
-            `SELECT 
-         DATE(data_hora) as data,
-         COUNT(DISTINCT telefone) as atendimentos
-       FROM clientes_historicos
-       ${whereClause}
-       AND DATE(data_hora) >= DATE_SUB(CURDATE(), INTERVAL ? DAY)
-       GROUP BY DATE(data_hora)
-       ORDER BY data ASC`,
+            `SELECT
+               DATE(ch.data_hora) as data,
+               COUNT(DISTINCT ch.telefone) as atendimentos,
+               COUNT(DISTINCT CASE WHEN DATE(c.primeira_interacao) = DATE(ch.data_hora) THEN ch.telefone END) as novos,
+               COUNT(DISTINCT CASE WHEN DATE(c.primeira_interacao) < DATE(ch.data_hora) THEN ch.telefone END) as retornos
+             FROM clientes_historicos ch
+             LEFT JOIN clientes c ON c.telefone = ch.telefone AND c.empresa = ch.empresa
+             ${whereClause}
+             AND DATE(ch.data_hora) >= DATE_SUB(CURDATE(), INTERVAL ? DAY)
+             GROUP BY DATE(ch.data_hora)
+             ORDER BY data ASC`,
             [...params, parseInt(dias)]
         );
 

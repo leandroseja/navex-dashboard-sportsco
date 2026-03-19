@@ -58,7 +58,7 @@ const obter = async (req, res) => {
  */
 const criar = async (req, res) => {
     try {
-        const { nome, slug, ativo = 1 } = req.body;
+        const { nome, slug, ativo = 1, mensagem_encerramento = null } = req.body;
 
         // Validações
         if (!nome || !slug) {
@@ -77,8 +77,8 @@ const criar = async (req, res) => {
 
         // Inserir empresa
         const [result] = await pool.query(
-            'INSERT INTO empresas (nome, slug, ativo) VALUES (?, ?, ?)',
-            [nome, slug, ativo]
+            'INSERT INTO empresas (nome, slug, ativo, mensagem_encerramento) VALUES (?, ?, ?, ?)',
+            [nome, slug, ativo, mensagem_encerramento]
         );
 
         // Retornar empresa criada
@@ -100,7 +100,7 @@ const criar = async (req, res) => {
 const atualizar = async (req, res) => {
     try {
         const { id } = req.params;
-        const { nome, slug, ativo } = req.body;
+        const { nome, slug, ativo, mensagem_encerramento } = req.body;
 
         // Verificar se empresa existe
         const [empresaExistente] = await pool.query(
@@ -141,6 +141,11 @@ const atualizar = async (req, res) => {
         if (ativo !== undefined) {
             updates.push('ativo = ?');
             params.push(ativo);
+        }
+
+        if (mensagem_encerramento !== undefined) {
+            updates.push('mensagem_encerramento = ?');
+            params.push(mensagem_encerramento);
         }
 
         if (updates.length === 0) {
