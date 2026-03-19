@@ -19,9 +19,13 @@ const getKPIs = async (req, res) => {
             }
         }
 
-        // WHERE clause para clientes_historicos (só tem empresa, telefone, data_hora)
+        // WHERE clause para clientes_historicos (sem alias, para queries simples)
         let whereHistoricos = 'WHERE 1=1';
         const paramsHistoricos = [];
+
+        // WHERE clause para clientes_historicos COM alias ch. (para queries com JOIN)
+        let whereHistoricosAlias = 'WHERE 1=1';
+        const paramsHistoricosAlias = [];
 
         // WHERE clause para clientes (tem empresa, cidade, tipo_cliente, etc)
         let whereClientes = 'WHERE 1=1';
@@ -30,12 +34,16 @@ const getKPIs = async (req, res) => {
         if (empresaFiltro) {
             whereHistoricos += ' AND empresa = ?';
             paramsHistoricos.push(empresaFiltro);
+            whereHistoricosAlias += ' AND ch.empresa = ?';
+            paramsHistoricosAlias.push(empresaFiltro);
             whereClientes += ' AND empresa = ?';
             paramsClientes.push(empresaFiltro);
         } else if (empresasPermitidas.length > 0) {
             const placeholders = empresasPermitidas.map(() => '?').join(',');
             whereHistoricos += ` AND empresa IN (${placeholders})`;
             paramsHistoricos.push(...empresasPermitidas);
+            whereHistoricosAlias += ` AND ch.empresa IN (${placeholders})`;
+            paramsHistoricosAlias.push(...empresasPermitidas);
             whereClientes += ` AND empresa IN (${placeholders})`;
             paramsClientes.push(...empresasPermitidas);
         }
@@ -88,9 +96,9 @@ const getKPIs = async (req, res) => {
             `SELECT COUNT(DISTINCT ch.telefone) as total
              FROM clientes_historicos ch
              INNER JOIN clientes c ON c.telefone = ch.telefone AND c.empresa = ch.empresa
-             ${whereHistoricos} AND YEARWEEK(ch.data_hora, 1) = YEARWEEK(CURDATE(), 1)
+             ${whereHistoricosAlias} AND YEARWEEK(ch.data_hora, 1) = YEARWEEK(CURDATE(), 1)
              AND YEARWEEK(c.primeira_interacao, 1) < YEARWEEK(CURDATE(), 1)`,
-            paramsHistoricos
+            paramsHistoricosAlias
         );
 
         // KPI 6: Estatísticas por canal (esta semana)
@@ -98,9 +106,9 @@ const getKPIs = async (req, res) => {
             `SELECT c.canal, COUNT(DISTINCT ch.telefone) as total
              FROM clientes_historicos ch
              INNER JOIN clientes c ON c.telefone = ch.telefone AND c.empresa = ch.empresa
-             ${whereHistoricos} AND YEARWEEK(ch.data_hora, 1) = YEARWEEK(CURDATE(), 1)
+             ${whereHistoricosAlias} AND YEARWEEK(ch.data_hora, 1) = YEARWEEK(CURDATE(), 1)
              GROUP BY c.canal`,
-            paramsHistoricos
+            paramsHistoricosAlias
         );
 
         const canais = {
@@ -137,7 +145,7 @@ const getGrafico = async (req, res) => {
         // Obter empresas que o usuário pode acessar
         const empresasPermitidas = await getUserEmpresas(req.user.id, req.user.nivel);
 
-        // Construir query base
+        // Construir query base com alias ch. para JOIN
         let whereClause = 'WHERE 1=1';
         const params = [];
 
@@ -145,10 +153,10 @@ const getGrafico = async (req, res) => {
             if (req.user.nivel !== 'adm_master' && !empresasPermitidas.includes(empresa)) {
                 return res.status(403).json({ error: 'Acesso negado a esta empresa' });
             }
-            whereClause += ' AND empresa = ?';
+            whereClause += ' AND ch.empresa = ?';
             params.push(empresa);
         } else if (empresasPermitidas.length > 0) {
-            whereClause += ` AND empresa IN (${empresasPermitidas.map(() => '?').join(',')})`;
+            whereClause += ` AND ch.empresa IN (${empresasPermitidas.map(() => '?').join(',')})`;
             params.push(...empresasPermitidas);
         }
 
